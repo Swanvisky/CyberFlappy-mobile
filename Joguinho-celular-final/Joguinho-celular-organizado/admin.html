@@ -1,0 +1,312 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | Cyberflappy</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      background: #100b20;
+      color: #f5edff;
+    }
+
+    main {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h1 {
+      color: #c9a1ff;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 7px 0;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    input {
+      background: #211638;
+      border: 1px solid #68439a;
+      color: white;
+    }
+
+    button {
+      background: #a875ed;
+      color: #160d24;
+      border: 0;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    .ganhador {
+      background: #211638;
+      border: 1px solid #68439a;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 14px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .email {
+      color: #d8baff;
+    }
+
+    .entregue {
+      color: #91e8b0;
+    }
+
+    .pendente {
+      color: #ffd580;
+    }
+
+    .btn-entregue {
+      background: #79dda0;
+      color: #10251a;
+    }
+
+    .btn-ja-entregue {
+      background: #344638;
+      color: #c7f5d3;
+      cursor: default;
+    }
+
+    #painel {
+      display: none;
+    }
+
+    #status {
+      color: #e1ccff;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <h1>🏆 Cyberflappy | Ganhadores</h1>
+
+  <section id="login">
+    <h2>Área administrativa</h2>
+
+    <input
+      id="senhaLogin"
+      type="password"
+      placeholder="Digite sua senha"
+      autocomplete="current-password"
+    >
+
+    <button id="entrar">Entrar</button>
+  </section>
+
+  <section id="painel">
+    <button id="atualizar">Atualizar ganhadores</button>
+    <button id="sair">Sair da conta</button>
+  </section>
+
+  <p id="status">Entre para consultar os ganhadores.</p>
+  <section id="lista"></section>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+
+<script>
+const EMAIL_ADMIN = "dafny2608201@gmail.com";
+const UID_ADMIN = "wWGisSNqFvUEQdsPiuFyNd6AzY83";
+
+const auth = firebase.auth();
+const banco = firebase.database();
+
+const login = document.getElementById("login");
+const painel = document.getElementById("painel");
+const status = document.getElementById("status");
+const lista = document.getElementById("lista");
+
+function mostrarLogin() {
+  login.style.display = "block";
+  painel.style.display = "none";
+  lista.replaceChildren();
+}
+
+async function entrar() {
+  const senha = document.getElementById("senhaLogin").value;
+
+  if (!senha) {
+    status.textContent = "Digite sua senha.";
+    return;
+  }
+
+  status.textContent = "Verificando acesso...";
+
+  try {
+    const resultado = await auth.signInWithEmailAndPassword(
+      EMAIL_ADMIN,
+      senha
+    );
+
+    if (resultado.user.uid !== UID_ADMIN) {
+      await auth.signOut();
+      status.textContent = "Esta conta não tem acesso administrativo.";
+      return;
+    }
+
+    document.getElementById("senhaLogin").value = "";
+    login.style.display = "none";
+    painel.style.display = "block";
+
+    await carregarGanhadores();
+
+  } catch (erro) {
+    status.textContent = "Não foi possível entrar. Confira sua senha.";
+  }
+}
+
+document.getElementById("entrar").onclick = entrar;
+
+document.getElementById("senhaLogin").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") entrar();
+});
+
+async function carregarGanhadores() {
+  if (!auth.currentUser || auth.currentUser.uid !== UID_ADMIN) {
+    status.textContent = "Entre na conta administrativa primeiro.";
+    return;
+  }
+
+  lista.replaceChildren();
+  status.textContent = "Carregando ganhadores...";
+
+  try {
+    const resposta = await banco.ref("premios").once("value");
+    const dados = resposta.val();
+
+    if (!dados) {
+      status.textContent = "Nenhum prêmio registrado ainda.";
+      return;
+    }
+
+    const ganhadores = Object.entries(dados)
+      .map(([id, pessoa]) => ({ id, ...pessoa }))
+      .sort((a, b) => (b.data || 0) - (a.data || 0));
+
+    for (const pessoa of ganhadores) {
+      const card = document.createElement("article");
+      card.className = "ganhador";
+
+      const nome = document.createElement("h3");
+      nome.textContent = pessoa.nome || "Sem nome";
+
+      const email = document.createElement("p");
+      email.className = "email";
+      email.textContent = "E-mail: " + (pessoa.email || "Não informado");
+
+      const pontos = document.createElement("p");
+      pontos.textContent = "Pontuação: " + (pessoa.pontuacao ?? 0);
+
+      const data = document.createElement("p");
+      data.textContent = "Data: " + (
+        pessoa.data
+          ? new Date(pessoa.data).toLocaleString("pt-BR")
+          : "Não informada"
+      );
+
+      const estado = document.createElement("p");
+      estado.className = pessoa.entregue ? "entregue" : "pendente";
+      estado.textContent = pessoa.entregue
+        ? "✓ Prêmio entregue"
+        : "⏳ Aguardando retirada";
+
+      const botao = document.createElement("button");
+
+      if (pessoa.entregue) {
+        botao.textContent = "Prêmio já entregue";
+        botao.className = "btn-ja-entregue";
+        botao.disabled = true;
+      } else {
+        botao.textContent = "Marcar como entregue";
+        botao.className = "btn-entregue";
+
+        botao.onclick = async () => {
+          const confirmar = window.confirm(
+            "Confirmar que o prêmio de " +
+            (pessoa.nome || "este ganhador") +
+            " foi entregue?"
+          );
+
+          if (!confirmar) return;
+
+          botao.disabled = true;
+          botao.textContent = "Salvando...";
+
+          try {
+            if (
+              !auth.currentUser ||
+              auth.currentUser.uid !== UID_ADMIN
+            ) {
+              throw new Error("Acesso administrativo expirado.");
+            }
+
+            await banco.ref("premios/" + pessoa.id + "/entregue")
+              .set(true);
+
+            estado.textContent = "✓ Prêmio entregue";
+            estado.className = "entregue";
+            botao.textContent = "Prêmio já entregue";
+            botao.className = "btn-ja-entregue";
+
+          } catch (erro) {
+            status.textContent =
+              "Não foi possível salvar. Confira as regras do Firebase.";
+            botao.textContent = "Tentar novamente";
+            botao.disabled = false;
+          }
+        };
+      }
+
+      card.append(nome, email, pontos, data, estado, botao);
+      lista.appendChild(card);
+    }
+
+    const pendentes = ganhadores.filter(p => !p.entregue).length;
+    const entregues = ganhadores.length - pendentes;
+
+    status.textContent =
+      ganhadores.length + " ganhador(es) | " +
+      pendentes + " pendente(s) | " +
+      entregues + " entregue(s).";
+
+  } catch (erro) {
+    status.textContent =
+      "Erro ao carregar. Verifique o login e as regras do Firebase.";
+  }
+}
+
+document.getElementById("atualizar").onclick = carregarGanhadores;
+
+document.getElementById("sair").onclick = async () => {
+  await auth.signOut();
+  mostrarLogin();
+  status.textContent = "Você saiu da área administrativa.";
+};
+</script>
+</body>
+</html>

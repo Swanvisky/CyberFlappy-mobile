@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+/>
+  <title>Flappy Friends</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <div id="app">
+
+    <canvas id="game"></canvas>
+
+    <div id="hud">
+      <div class="best">
+        🏆 Recorde: <span id="best">0</span>
+      </div>
+
+      <div class="score" id="score">0</div>
+    </div>
+
+
+    <button id="pauseBtn">Ⅱ</button>
+
+    <!-- MENU -->
+    <section class="panel" id="menu">
+      <div class="card">
+
+        <div class="tag">CYBERPUNK ARCADE</div>
+
+        <h1> CYBER // FLAPPY</h1>
+
+        <div class="sub">
+          ESCOLHA SEU AVATAR
+        </div>
+        
+        <div class="characters" id="characters"></div>
+        
+        <div class="actions">
+          <button
+          class="secondary"
+          id="musicModeBtn"
+          type="button"
+          >
+          ♫ Desligar música do personagem
+        </button>
+      </div>  
+
+        <div class="actions">
+
+          <button class="primary" id="playBtn">
+            ▶ INICIAR
+          </button>
+
+        </div>
+
+        <div class="hint">
+          PC: <b>clique</b> ou aperte <b>Espaço</b> para voar. <b>Enter</b> pausa e reinicia o jogo.<br>
+          Celular: <b>toque na tela</b>.
+        </div>
+
+      </div>
+    </section>
+
+   
+<!-- GAME OVER -->
+
+<!-- GAME OVER -->
+<section class="panel" id="gameOver">
+
+  
+  <!-- QUADRADO 2: INFORMAÇÕES DO PRÊMIO -->
+  <div class="card prize-card">
+    
+    <div id="prizeMessage" style="display: none;">
+      <h2>🎉 VOCÊ CONSEGUIU!</h2>
+      <p>Você alcançou 50 pontos! Preencha seus dados para registrar seu prêmio.</p>
+    </div>
+    
+    <form id="prizeForm" style="display: none;">
+      <div class="form-title">INFORMAÇÕES DO PRÊMIO</div>
+      
+      <input
+      id="prizeName"
+      type="text"
+      maxlength="60"
+      autocomplete="name"
+      placeholder="Seu nome"
+      required
+      />
+      
+      <input
+      id="prizeEmail"
+      type="email"
+      maxlength="100"
+      autocomplete="email"
+      placeholder="Seu e-mail"
+      required
+      />
+      
+      <button class="primary" type="submit">
+        🎁 REGISTRAR PRÊMIO
+      </button>
+      
+      <div class="form-status" id="prizeStatus"></div>
+    </form>
+    
+  </div>
+  <!-- QUADRADO 1: RESULTADO DA PARTIDA -->
+  <div class="card gameover-result-card">
+
+    <h2>CONEXÃO PERDIDA</h2>
+
+    <div class="result">
+      Pontos: <span id="finalScore">0</span><br>
+      Recorde: <span id="finalBest">0</span>
+    </div>
+
+    <div class="actions">
+      <button class="secondary" id="menuBtn">
+        🎭 AVATARES
+      </button>
+
+      <button class="primary" id="retryBtn">
+        ↻ TENTAR NOVAMENTE
+      </button>
+    </div>
+
+  </div>
+
+</section>
+
+
+
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/desenho.js"></script>
+  <script src="js/personagens.js"></script>
+</body>
+</html>
+
